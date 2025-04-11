@@ -22,10 +22,12 @@ class ProductsSeeder extends Seeder
         $rowCount = 0;
         $saved = 0;
         $errores = 0;
+        $incompleteCount = 0;
 
         while (($line = fgets($handle)) !== false) {
             $buffer .= $line;
 
+            // Usamos str_getcsv para convertir el buffer en array
             $fields = str_getcsv(trim($buffer));
 
             if (count($fields) === 4) {
@@ -36,31 +38,48 @@ class ProductsSeeder extends Seeder
                     is_numeric($department_id) &&
                     is_numeric($aisle_id)
                 ) {
-                    Product::create([
-                        'product_id' => (int) $product_id,
-                        'product_name' => $product_name,
-                        'department_id' => (int) $department_id,
-                        'aisle_id' => (int) $aisle_id,
-                    ]);
-                    $saved++;
-                    echo "✅ Producto insertado: $product_id\n";
+                    try {
+                        Product::create([
+                            'product_id' => (int) $product_id,
+                            'product_name' => $product_name,
+                            'department_id' => (int) $department_id,
+                            'aisle_id' => (int) $aisle_id,
+                        ]);
+                        $saved++;
+                        echo "✅ Insertado: $product_id\n";
+                    } catch (\Throwable $e) {
+                        echo "❌ Error al guardar $product_id: " . $e->getMessage() . "\n";
+                        $errores++;
+                    }
                 } else {
-                    dump("⚠️ Campos no válidos (tipos):", $fields);
+                    echo "⚠️ Tipos inválidos en fila: " . json_encode($fields) . "\n";
                     $errores++;
                 }
 
-                $buffer = ''; // Reiniciamos el buffer para la siguiente línea
+                // Reiniciamos
+                $buffer = '';
+                $incompleteCount = 0;
                 $rowCount++;
             } else {
-                // Seguimos acumulando hasta tener una línea bien formada
+                $incompleteCount++;
+
+                // Si hemos acumulado demasiadas líneas sin éxito, la descartamos
+                if ($incompleteCount >= 10 || strlen($buffer) > 20000) {
+                    echo "🚨 Línea descartada por ser demasiado larga o incompleta:\n$buffer\n";
+                    $buffer = '';
+                    $errores++;
+                    $incompleteCount = 0;
+                }
+
                 continue;
             }
         }
 
         fclose($handle);
 
+        echo "\n📊 RESUMEN:\n";
         echo "✅ Productos insertados: $saved\n";
         echo "⚠️ Filas problemáticas: $errores\n";
-        echo "📄 Total procesado: $rowCount\n";
+        echo "📄 Total filas leídas: $rowCount\n";
     }
 }
