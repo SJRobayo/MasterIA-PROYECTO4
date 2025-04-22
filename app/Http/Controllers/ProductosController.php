@@ -2,25 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Services\ApiService;
 
 class ProductosController extends Controller
 {
-    
+
+    public $recommendations;
+    public $populars;
     // Vista de todos los productos
     public function index()
-{
-    $service = new ApiService(); // 👈 esto es lo que faltaba
+    {
+        $service = new ApiService(); // 👈 esto es lo que faltaba
 
-    $id = auth()->user()->id;
+        $id = auth()->user()->id;
 
-    $response = $service->getDataFromExternalApi($id);
-    dd($response);
+        $recomendations = $service->getDataFromExternalApi($id);
+        $this->recommendations = Product::whereIn('product_id', $recomendations['recommendations'])->get();
+        
+        $populars = $service->getPopularProducts();
+        $this->populars = Product::whereIn('product_id', $populars['recommendations'])->get();
 
-    $productos = $this->obtenerProductos();
-    return view('dashboard', compact('productos'));
-}
+        $productos = $this->obtenerProductos();
+        return view('dashboard', [
+            'populars' => $this->populars,
+            'recommendations' => $this->recommendations,
+        ]);
+    }
 
     // Búsqueda de productos
     public function buscar(Request $request)

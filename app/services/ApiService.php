@@ -21,4 +21,20 @@ class ApiService
             'status' => $response->status()
         ];
     }
+
+    public function getPopularProducts()
+    {
+        $response = Http::get('https://instacartapi.onrender.com/popular_products_model');
+
+        if ($response->successful()) {
+            return $response->json(); // o ->body() si prefieres el texto sin parsear
+        }
+
+        // Manejo de errores
+        return [
+            'error' => true,
+            'message' => 'Error al conectar con la API externa',
+            'status' => $response->status()
+        ];
+    }
 }
