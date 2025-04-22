@@ -3,15 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\ApiService;
 
 class ProductosController extends Controller
 {
+    
     // Vista de todos los productos
     public function index()
-    {
-        $productos = $this->obtenerProductos();
-        return view('dashboard', compact('productos')); // Asegúrate que la vista se llame 'dashboard.blade.php'
-    }
+{
+    $service = new ApiService(); // 👈 esto es lo que faltaba
+
+    $id = auth()->user()->id;
+
+    $response = $service->getDataFromExternalApi($id);
+    dd($response);
+
+    $productos = $this->obtenerProductos();
+    return view('dashboard', compact('productos'));
+}
 
     // Búsqueda de productos
     public function buscar(Request $request)
