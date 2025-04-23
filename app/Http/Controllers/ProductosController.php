@@ -18,11 +18,13 @@ class ProductosController extends Controller
         $id = auth()->user()->id;
 
         $recomendations = $service->getDataFromExternalApi($id);
-        $this->recommendations = Product::whereIn('product_id', $recomendations['recommendations'])->get();
-        
+        $recommendationIds = $recomendations['recommendations'] ?? [];
+        $this->recommendations = Product::whereIn('product_id', $recommendationIds)->get();
+                
         $populars = $service->getPopularProducts();
-        $this->populars = Product::whereIn('product_id', $populars['recommendations'])->get();
-
+        $popularIds = $populars['recommendations'] ?? [];
+        $this->populars = Product::whereIn('product_id', $popularIds)->get();
+        
         $productos = $this->obtenerProductos();
         return view('dashboard', [
             'populars' => $this->populars,
