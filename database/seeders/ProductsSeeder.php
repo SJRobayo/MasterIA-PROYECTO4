@@ -60,13 +60,13 @@ class ProductsSeeder extends Seeder
                 try {
                     // Crear o encontrar aisle
                     Aisle::firstOrCreate(
-                        ['aisle_id' => $aisle_id],
+                        ['id' => $aisle_id],
                         ['aisle' => $aisle_name]
                     );
 
                     // Crear o encontrar department
                     Department::firstOrCreate(
-                        ['department_id' => $department_id],
+                        ['id' => $department_id],
                         ['department' => $department_name]
                     );
 
