@@ -13,7 +13,7 @@ class ProductosController extends Controller
     // Vista de todos los productos
     public function index()
     {
-        $service = new ApiService(); // 👈 esto es lo que faltaba
+        $service = new ApiService(); 
 
         $id = auth()->user()->id;
 

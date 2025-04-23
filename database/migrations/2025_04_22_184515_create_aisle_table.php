@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aisle', function (Blueprint $table) {
-            $table->id('aisle_id')->primary();
+        Schema::create('aisles', function (Blueprint $table) {
+            $table->id('id')->primary();
             $table->string('aisle')->nullable();
             $table->timestamps();
         });
