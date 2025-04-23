@@ -28,9 +28,9 @@
                 <!-- Producto 1 -->
                 @foreach ($productos as $producto)
                     <div class="bg-white shadow-md rounded-lg p-4">
-                        <h3 class="text-lg font-bold mt-2">{{ $producto['nombre'] }}</h3>
-                        <p class="text-gray-600 text-sm">Aisle_id: {{ $producto['aisle_id'] }} | Department_id: {{ $producto['department_id'] }}</p>
-                        <p class="text-green-600 font-bold mt-2">ID: {{ $producto['id'] }}</p>
+                        <h3 class="text-lg font-bold mt-2">{{ $producto->product_name }}</h3>
+                        <p class="text-gray-600 text-sm">Aisle_id: {{ $producto->aisle_id }} | Department_id: {{ $producto->department_id }}</p>
+                        <p class="text-green-600 font-bold mt-2">ID: {{ $producto->id }}</p>
                         <button class="mt-3 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Comprar</button>
                     </div>
                 @endforeach
