@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Livewire;
 
+use App\Models\Basket;
 use App\Models\Product;
-use Illuminate\Http\Request;
 use App\Services\ApiService;
-use Illuminate\Support\Str;
+use Livewire\Component;
 
-class ProductosController extends Controller
+class HomePage extends Component
 {
 
-    public $recommendations;
-    public $populars;
-    // Vista de todos los productos
-    public function dashboard()
+
+    public function render()
     {
         $service = new ApiService();
         $id = auth()->user()->id;
@@ -35,6 +33,7 @@ class ProductosController extends Controller
                 ->get();
 
             $recommendations = $recommendations->merge($products);
+            // dd($recommendations);
         }
 
         // dd($recommendations);
@@ -47,7 +46,7 @@ class ProductosController extends Controller
             ->get();
 
 
-        return view('dashboard', [
+        return view('livewire.home-page', [
             'recommendations' => $recommendations,
             'populars' => $popularProducts
         ]);
@@ -61,6 +60,17 @@ class ProductosController extends Controller
 
     public function addToCart($id)
     {
-        dd(1);
+        // dd($id);
+
+        $user = auth()->user();
+
+        // Si el usuario no tiene cesta, la crea
+        $basket = $user->basket ?? Basket::create(['user_id' => $user->id]);
+        
+        // Agrega el producto al basket (asumiendo belongsToMany con tabla intermedia)
+        $basket->products()->attach($id);
+        
+        // Mostrar productos del basket
+        dd($basket->products()->get());
     }
 }

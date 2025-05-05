@@ -1,4 +1,4 @@
-<x-app-layout>
+<div>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">RECOMENDATIONS</h2>
     </x-slot>
@@ -68,7 +68,7 @@
                                         # {{ $producto->aisle->aisle }} | Dept: {{ $producto->department->department }}
                                     </p>
                                     <p class="text-green-600 font-semibold text-sm mb-2">ID: {{ $producto->id }}</p>
-                                    <button class="w-full bg-blue-500 text-white text-sm py-1 rounded hover:bg-blue-600">
+                                    <button wire:click="addToCart({{$producto->id}})"class="w-full bg-blue-500 text-white text-sm py-1 rounded hover:bg-blue-600">
                                         Comprar
                                     </button>
                                 </div>
@@ -115,4 +115,5 @@
             grabCursor: true
         });
     </script>
-</x-app-layout>
+
+</div>
