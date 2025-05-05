@@ -12,7 +12,7 @@ class ProductsSeeder extends Seeder
 {
     public function run(): void
     {
-        $filePath = storage_path('app/public/csv/definitivo.csv');
+        $filePath = storage_path('app/public/csv/df_final.csv');
 
         if (!file_exists($filePath)) {
             die("❌ El archivo CSV no existe.");
@@ -72,7 +72,7 @@ class ProductsSeeder extends Seeder
 
                     // Crear producto si no existe
                     Product::firstOrCreate(
-                        ['product_id' => $product_id],
+                        ['id' => $product_id],
                         [
                             'product_name' => $product_name,
                             'aisle_id' => $aisle_id,

@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $filePath = storage_path('app/public/csv/definitivo.csv');
+        $filePath = storage_path('app/public/csv/df_final.csv');
 
         if (!file_exists($filePath)) {
             die("El archivo CSV no existe.");
@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
         $csv = CsvReader::createFromPath($filePath, 'r');
         $csv->setHeaderOffset(0);
 
-        $processedUserIds = []; // Array para rastrear los user_id procesados
+        $processedUserIds = [];
 
         foreach ($csv as $record) {
             $userId = (int) $record['user_id'];
