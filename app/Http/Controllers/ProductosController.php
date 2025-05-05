@@ -2,9 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use Illuminate\Http\Request;
 use App\Services\ApiService;
-use Illuminate\Support\Str;
 
 class ProductosController extends Controller
 {

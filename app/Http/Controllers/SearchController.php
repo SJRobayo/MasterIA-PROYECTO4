@@ -1,102 +1,96 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Services\ApiService;
+use App\Services\AssociationRulesService;
 
 class SearchController extends Controller
 {
     public function search(Request $request)
     {
         $query = $request->input('q');
-        $view = $request->input('view', 'dashboard'); // ← Valor por defecto
+        $view = $request->input('view', 'dashboard');
 
         $vista = match ($view) {
             'dashboard' => 'dashboard',
             'productos' => 'all-products',
             'categorias' => 'categories.index',
-            default => 'dashboard', // Fallback
+            default => 'dashboard',
         };
 
         $palabras = preg_split('/[\s,]+/', strtolower($query));
+        $palabras = array_map(fn($p) => strtolower(Str::ascii($p)), $palabras);
 
-        // Obtener todos los productos (sin paginación para buscar en todos)
-        $productos = Product::all(); 
+        $userId = auth()->user()->id;
+        $service = new ApiService();
+        $recomendaciones = $service->getDataFromExternalApi($userId);
+
+        $productos = Product::with(['aisle', 'department'])->get();
+        $productosRecomendados = Product::whereIn('product_id', $recomendaciones['recommendations'])
+            ->with(['aisle', 'department'])
+            ->get();
 
         $resultados = $productos->filter(function ($producto) use ($palabras) {
-            $nombreNormalizado = strtolower(Str::ascii($producto->product_name));
-            foreach ($palabras as $palabra) {
-                $palabra = strtolower(Str::ascii($palabra));
-                $sinonimos = [
-                    'soda' => ['soft drink', 'cola', 'drink'],
-                    'meat' => ['beef', 'chicken', 'turkey', 'turkey'],
-                    'snack' => ['snack', 'appetizer', 'snack'],
-                    'tea' => ['tea', 'infusion'],
-                ];
-                $palabrasBuscar = [$palabra];
-                foreach ($sinonimos as $key => $variantes) {
-                    if ($palabra === $key || in_array($palabra, $variantes)) {
-                        $palabrasBuscar = array_merge($palabrasBuscar, [$key], $variantes);
-                    }
-                }
-                foreach ($palabrasBuscar as $p) {
-                    if (str_contains($nombreNormalizado, $p)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            $nombre = strtolower(Str::ascii($producto->product_name));
+            return collect($palabras)->contains(fn($palabra) => str_contains($nombre, $palabra));
         });
 
-        // Obtener sugerencias solo de los productos que coinciden
-        $sugerencias = [];
-        if ($resultados->isNotEmpty()) {
-            $palabrasClave = $resultados->pluck('product_name')
-                ->flatMap(function ($nombre) {
-                    return explode(' ', strtolower(Str::ascii($nombre)));
-                })
-                ->filter(function ($palabra) use ($palabras) {
-                    return strlen($palabra) > 3 && !in_array($palabra, $palabras);
-                })
-                ->map(function ($palabra) {
-                    $diccionario = [
-                        'soda' => ['soft drink', 'cola', 'drink'],
-                        'meat' => ['beef', 'chicken', 'turkey', 'turkey'],
-                        'snack' => ['snack', 'appetizer', 'snack'],
-                        'tea' => ['tea', 'infusion'],
-                        'dessert' => ['sweet', 'cake', 'chocolate'],
-                    ];
-                    foreach ($diccionario as $original => $variantes) {
-                        if ($palabra === $original || in_array($palabra, $variantes)) {
-                            return $original;
-                        }
-                    }
-                    return $palabra;
-                })
-                ->unique()
-                ->take(5)
-                ->values()
-                ->all();
+        $resultadosRecomendados = $productosRecomendados->filter(function ($producto) use ($palabras) {
+            $nombre = strtolower(Str::ascii($producto->product_name));
+            return collect($palabras)->contains(fn($palabra) => str_contains($nombre, $palabra));
+        });
 
-            foreach ($palabrasClave as $clave) {
-                foreach ($resultados as $producto) {
-                    if (str_contains(strtolower($producto->product_name), $clave)) {
-                        $sugerencias[] = $producto;
-                    }
-                }
+        // ------- AQUÍ empieza lo importante (recomendaciones) -------
+        $associationService = new AssociationRulesService();
+        $recomendados = collect();
+
+        if ($resultados->isNotEmpty()) {
+            $aisleDeps = $resultados->map(function ($producto) {
+                $aisle = strtolower(str_replace(' ', '', Str::ascii($producto->aisle->aisle_name)));
+                $department = strtolower(str_replace(' ', '', Str::ascii($producto->department->department_name)));
+                return $aisle . '|' . $department;
+            })->unique(); // Evitamos duplicados
+
+            $consecuentesTotales = collect();
+
+            foreach ($aisleDeps as $aisleDep) {
+                $consecuentes = $associationService->getConsequentsFor($aisleDep);
+                $consecuentesTotales = $consecuentesTotales->merge($consecuentes);
             }
 
-            // Eliminar duplicados por ID y tomar los primeros 5 resultados únicos
-            $sugerencias = collect($sugerencias)->unique('id')->take(5)->values()->all();
+            $consecuentesTotales = $consecuentesTotales->unique();
+
+            foreach ($consecuentesTotales as $asociado) {
+                if (strpos($asociado, '|') !== false) {
+                    [$aisleConsequent, $deptConsequent] = explode('|', $asociado);
+
+                    $matches = Product::with(['aisle', 'department'])
+                        ->get()
+                        ->filter(function ($producto) use ($aisleConsequent, $deptConsequent) {
+                            $aisle = strtolower(str_replace(' ', '', Str::ascii($producto->aisle->aisle_name)));
+                            $department = strtolower(str_replace(' ', '', Str::ascii($producto->department->department_name)));
+
+                            return $aisle === $aisleConsequent && $department === $deptConsequent;
+                        });
+
+                    $recomendados = $recomendados->merge($matches);
+                }
+            }
         }
 
-        // Mostrar los resultados de búsqueda en la vista correcta
+        $recomendados = $recomendados->unique('id')->take(5)->values();
+
+
         return view($vista, [
             'resultados' => $resultados,
-            'sugerencias' => $sugerencias,
+            'resultadosRecomendados' => $resultadosRecomendados,
+            'sugerencias' => $recomendados,
             'query' => $query,
-            'recommendations' => collect(), // Para que no rompa el dashboard
+            'recommendations' => collect(),
             'populars' => collect()
         ]);
     }

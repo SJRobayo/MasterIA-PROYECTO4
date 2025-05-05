@@ -34,11 +34,11 @@
             <form action="{{ route('buscar') }}" method="GET" class="flex space-x-2">
                 <input type="text" name="q" placeholder="Search" class="border p-2 rounded">
                 <input type="hidden" name="view" value="{{ Route::currentRouteName() }}">
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Buscar</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Search</button>
             </form>
             <ul class="flex space-x-6">
-                <li><a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-800">Recomendaciones</a></li>
-                <li><a href="{{ route('products.index') }}" class="text-gray-600 hover:text-gray-800">Productos</a></li>
+                <li><a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-gray-800">Recommendations</a></li>
+                <li><a href="{{ route('products.index') }}" class="text-gray-600 hover:text-gray-800">Products</a></li>
             </ul>
         </nav>
 
