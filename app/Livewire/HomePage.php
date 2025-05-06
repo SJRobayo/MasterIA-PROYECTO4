@@ -60,17 +60,13 @@ class HomePage extends Component
 
     public function addToCart($id)
     {
-        // dd($id);
 
         $user = auth()->user();
 
-        // Si el usuario no tiene cesta, la crea
         $basket = $user->basket ?? Basket::create(['user_id' => $user->id]);
         
-        // Agrega el producto al basket (asumiendo belongsToMany con tabla intermedia)
         $basket->products()->attach($id);
         
-        // Mostrar productos del basket
         dd($basket->products()->get());
     }
 }
