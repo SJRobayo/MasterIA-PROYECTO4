@@ -13,6 +13,8 @@ class HomePage extends Component
 
     public function render()
     {
+        $product = Product::where('id', 15872)->first();
+        // dd($product);
         $service = new ApiService();
         $id = auth()->user()->id;
 
@@ -60,13 +62,15 @@ class HomePage extends Component
 
     public function addToCart($id)
     {
-
+        // dd($id);
         $user = auth()->user();
 
-        $basket = $user->basket ?? Basket::create(['user_id' => $user->id]);
-        
-        $basket->products()->attach($id);
-        
-        dd($basket->products()->get());
+        $basket = Basket::firstOrCreate(['user_id' => $user->id]);
+
+        if (!$basket->products()->where('products.id', $id)->exists()) {
+            $basket->products()->attach($id);
+        }
+        session()->flash('success', 'Producto añadido al carrito');
+        return redirect()->back();
     }
 }

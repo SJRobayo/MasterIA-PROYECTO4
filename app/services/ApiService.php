@@ -37,4 +37,23 @@ class ApiService
             'status' => $response->status()
         ];
     }
+
+    public function getMbaRecommendations(array $aisleIds, int $n = 5)
+    {
+        $response = Http::post('http://127.0.0.1:8000/basket/recommend', [
+            'aisle_ids' => $aisleIds,
+            'n' => $n
+        ]);
+
+        if ($response->successful()) {
+            // dd($response->json());
+            return $response->json();
+        }
+
+        return [
+            'error' => true,
+            'message' => 'Error al conectar con la API de MBA',
+            'status' => $response->status()
+        ];
+    }
 }
