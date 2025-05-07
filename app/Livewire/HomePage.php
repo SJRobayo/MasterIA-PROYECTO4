@@ -10,6 +10,7 @@ use Livewire\Component;
 class HomePage extends Component
 {
 
+    public $cluster;
 
     public function render()
     {
@@ -41,7 +42,7 @@ class HomePage extends Component
         // dd($recommendations);
 
 
-        $populars = $service->getPopularProducts();
+        $populars = $service->getPopularProducts($id);
         // dd($populars);
         $popularProducts = Product::with(['aisle', 'department'])
             ->whereIn('id', $populars['recommendations'])

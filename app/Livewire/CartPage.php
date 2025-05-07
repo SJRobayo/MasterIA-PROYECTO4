@@ -38,6 +38,10 @@ class CartPage extends Component
             }
         }
 
+        if (empty($this->mbaProducts)) {
+            $this->mbaProducts = [];
+        }
+
         // dd($this->mbaProducts);
     }
 

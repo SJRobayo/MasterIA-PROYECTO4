@@ -8,8 +8,8 @@ class ApiService
 {
     public function getDataFromExternalApi($userId)
     {
-        $response = Http::get('https://instacartapi.onrender.com/recommend/' . $userId);
-        // dd($response->json());
+        $response = Http::get('http://127.0.0.1:8000/recommend/' . $userId);
+        // dd($response->json(['cluster']));
         if ($response->successful()) {
             return $response->json(); // o ->body() si prefieres el texto sin parsear
         }
@@ -22,9 +22,9 @@ class ApiService
         ];
     }
 
-    public function getPopularProducts()
+    public function getPopularProducts($userId)
     {
-        $response = Http::get('http://127.0.0.1:8000/popular_products_model');
+        $response = Http::get('http://127.0.0.1:8000/popular_products_model/' . $userId);
 
         if ($response->successful()) {
             return $response->json(); // o ->body() si prefieres el texto sin parsear
